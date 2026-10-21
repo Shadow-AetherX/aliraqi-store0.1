@@ -27,6 +27,15 @@ const CONFIG = {
   // نسبة الزيادة على Base Price — للقطاعي فقط
   retailMarkupPercent: 15,
 
+  // ---- سرعة الصور: نسخة صغيرة بتظهر فورًا (مموّهة) وبعدها الدقة العالية تحل مكانها ----
+  // التصغير شغال تلقائيًا لصور Google Drive و googleusercontent. أي مصدر تاني بيتحمّل بحجمه الأصلي.
+  imageResize: true,
+  thumbWidth: 360,       // النسخة السريعة الأولى في الكارت
+  cardWidth: 1100,       // الدقة العالية في الكارت
+  lightboxWidth: 1800,   // الدقة في التكبير
+  cartThumbWidth: 160,   // صور السلة
+  lazyMargin: "2000px 0px", // بنبدأ تحميل الصور قبل ما توصلها بـ ~2000px
+
   maxQuantity: 9999,
   cartStorageKey: `aliraqi_cart_v2_${MODE}`,
   cartHintStorageKey: `aliraqi_cart_hint_shown_v2_${MODE}`,
@@ -236,6 +245,117 @@ function resolveImageSrc(product, index) {
   const idx = typeof index === "number" ? index : 0;
   const list = (product && product.images) || [];
   return list[idx] || FALLBACK_IMAGE;
+}
+
+/* =====================================================================
+   تحميل الصور بسرعة: رابط مصغّر + تحميل مسبق + ظهور تدريجي
+===================================================================== */
+function driveFileId(src) {
+  let m = /drive\.google\.com\/file\/d\/([\w-]+)/.exec(src);
+  if (m) return m[1];
+  m = /drive\.google\.com\/(?:open|uc|thumbnail)\?(?:[^#]*&)?id=([\w-]+)/.exec(src);
+  if (m) return m[1];
+  m = /lh\d\.googleusercontent\.com\/d\/([\w-]+)/.exec(src);
+  return m ? m[1] : null;
+}
+/** رابط الصورة بعرض معيّن (w بالبكسل) لو المصدر بيدعم التصغير، وإلا الرابط الأصلي */
+function imgUrl(src, w) {
+  if (!CONFIG.imageResize || !src || src === FALLBACK_IMAGE || src.startsWith("data:")) return src;
+  const id = driveFileId(src);
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`;
+  const g = /^(https:\/\/lh\d\.googleusercontent\.com\/[^=\s]+)(=[^/\s]*)?$/.exec(src);
+  if (g) return `${g[1]}=w${w}`;
+  return src;
+}
+
+const IMG_LOADS = new Map();
+function preloadImage(url) {
+  if (!url) return Promise.resolve(null);
+  if (IMG_LOADS.has(url)) return IMG_LOADS.get(url);
+  const p = new Promise((resolve) => {
+    const i = new Image();
+    i.decoding = "async";
+    i.onload = () => resolve(url);
+    i.onerror = () => {
+      IMG_LOADS.delete(url);
+      resolve(null);
+    };
+    i.src = url;
+  });
+  IMG_LOADS.set(url, p);
+  return p;
+}
+
+/** يعرض النسخة الصغيرة أول ما تجهز (مموّهة)، وبعدها الدقة العالية. التوكن بيمنع تعارض التنقل السريع. */
+function showProgressive(imgEl, src, lowW, highW, onFirst) {
+  const token = (imgEl._imgToken = (imgEl._imgToken || 0) + 1);
+  delete imgEl.dataset.fallbackApplied;
+  if (!src || src === FALLBACK_IMAGE) {
+    imgEl.src = FALLBACK_IMAGE;
+    imgEl.classList.remove("img-blur");
+    if (onFirst) onFirst();
+    return;
+  }
+  const low = imgUrl(src, lowW);
+  const high = imgUrl(src, highW);
+  let highDone = false;
+  let shown = false;
+  const show = (url, sharp) => {
+    if (imgEl._imgToken !== token) return;
+    imgEl.src = url;
+    imgEl.classList.toggle("img-blur", !sharp);
+    if (!shown) {
+      shown = true;
+      if (onFirst) onFirst();
+    }
+  };
+  if (low !== high) preloadImage(low).then((u) => { if (u && !highDone) show(u, false); });
+  preloadImage(high).then((u) => {
+    highDone = true;
+    if (u) return show(u, true);
+    preloadImage(src).then((o) => {
+      if (o) show(o, true);
+      else if (shown) {
+        if (imgEl._imgToken === token) imgEl.classList.remove("img-blur");
+      } else show(FALLBACK_IMAGE, true);
+    });
+  });
+}
+
+/** بدء تحميل صور الكارت قبل ما يوصله المستخدم بمسافة كبيرة (يمنع الانتظار عند النزول السريع) */
+let LAZY_IO = null;
+function observeLazy(elm, start) {
+  if (!("IntersectionObserver" in window)) {
+    start();
+    return;
+  }
+  if (!LAZY_IO) {
+    LAZY_IO = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          LAZY_IO.unobserve(en.target);
+          const f = en.target._startImages;
+          if (f) f();
+        });
+      },
+      { rootMargin: CONFIG.lazyMargin }
+    );
+  }
+  elm._startImages = start;
+  LAZY_IO.observe(elm);
+}
+const whenIdle = window.requestIdleCallback ? (f) => window.requestIdleCallback(f) : (f) => setTimeout(f, 300);
+
+/** الصور المجاورة (التالية/السابقة) بتتحمّل مسبقًا عشان التنقل يبقى فوري */
+function preloadNeighbours(list, index, w) {
+  if (!list || list.length < 2) return;
+  whenIdle(() => {
+    [1, -1].forEach((d) => {
+      const s = list[(index + d + list.length) % list.length];
+      if (s && s !== FALLBACK_IMAGE) preloadImage(imgUrl(s, w));
+    });
+  });
 }
 
 /** الـ fallback بيتفعّل مرة واحدة فقط لكل صورة (يمنع loop لو الـ fallback نفسه فشل) */
@@ -487,6 +607,34 @@ function maybeShowWelcomeHintOnce() {
   }, 900);
 }
 
+/** رسالة ثابتة تحت الهيدر (النص بيتكتب مرة واحدة في index.html داخل #siteBanner). بتتقفل وما ترجعش إلا لو النص اتغيّر. */
+function initSiteBanner() {
+  const box = document.getElementById("siteBanner");
+  if (!box || box.dataset.ready) return;
+  box.dataset.ready = "1";
+  const textEl = box.querySelector(".site-banner-text");
+  const text = textEl ? textEl.textContent.trim() : "";
+  if (!text) return;
+  const key = `aliraqi_banner_dismissed_${MODE}`;
+  try {
+    if (localStorage.getItem(key) === text) return;
+  } catch (e) {
+    /* تجاهل */
+  }
+  box.hidden = false;
+  const close = document.getElementById("siteBannerClose");
+  if (close) {
+    close.addEventListener("click", () => {
+      box.hidden = true;
+      try {
+        localStorage.setItem(key, text);
+      } catch (e) {
+        /* تجاهل */
+      }
+    });
+  }
+}
+
 function maybeShowCartHintOnce() {
   let alreadyShown = false;
   try {
@@ -589,6 +737,7 @@ function init() {
   closeCartPanel();
   closeLightbox();
   maybeShowWelcomeHintOnce();
+  initSiteBanner();
 
   PENDING_RAW_CART = readRawCartFromStorage();
 
@@ -949,6 +1098,7 @@ function buildUnavailableTitle(count, tag) {
 }
 
 function renderGrid() {
+  if (LAZY_IO) LAZY_IO.disconnect();
   const term = SEARCH_TERM.trim();
   const list = getFilteredProducts();
 
@@ -1011,14 +1161,14 @@ function buildProductCard(product) {
 
   function renderActiveImage() {
     const src = images[activeImageIndex] || FALLBACK_IMAGE;
-    delete img.dataset.fallbackApplied;
     if (src !== FALLBACK_IMAGE) mediaEl.classList.add("is-loading");
-    img.src = src;
+    showProgressive(img, src, CONFIG.thumbWidth, CONFIG.cardWidth, () => mediaEl.classList.remove("is-loading"));
     img.alt =
       images.length > 1
         ? `${product.name} — صورة ${activeImageIndex + 1} من ${images.length}`
         : product.name;
     if (galleryCounter) galleryCounter.textContent = `${activeImageIndex + 1} / ${images.length}`;
+    preloadNeighbours(images, activeImageIndex, CONFIG.cardWidth);
   }
 
   function goToImage(newIndex) {
@@ -1101,7 +1251,9 @@ function buildProductCard(product) {
     }
   });
 
-  renderActiveImage();
+  img.alt = product.name;
+  mediaEl.classList.add("is-loading");
+  observeLazy(mediaEl, renderActiveImage);
 
   const badgesEl = node.querySelector(".card-badges");
   if (badgesEl && product.badges && product.badges.length) {
@@ -1123,6 +1275,17 @@ function buildProductCard(product) {
   node.querySelector(".card-name").textContent = product.name;
   node.querySelector(".card-itemid").textContent = product.id;
   node.querySelector(".card-category").textContent = product.category;
+  if (!IS_RETAIL) {
+    // الجملة: القسم ظاهر في الشريط فوق، والحالة بتظهر بس كشارة على الصورة لو غير متوفر
+    node.querySelector(".row-cat").hidden = true;
+    node.querySelector(".row-avail").hidden = true;
+    if (!isAvailable) {
+      const ub = document.createElement("span");
+      ub.className = "card-unavail-badge";
+      ub.textContent = "غير متوفر";
+      mediaEl.appendChild(ub);
+    }
+  }
   const descEl = node.querySelector(".card-desc");
   descEl.textContent = product.description;
   descEl.hidden = !product.description;
@@ -1371,7 +1534,7 @@ function renderCart() {
     row.className = "cart-line";
 
     const img = document.createElement("img");
-    img.src = resolveImageSrc(product);
+    img.src = imgUrl(resolveImageSrc(product), CONFIG.cartThumbWidth);
     img.alt = product.name;
     img.loading = "lazy";
     img.decoding = "async";
@@ -2331,9 +2494,8 @@ let LIGHTBOX_INDEX = 0;
 
 function renderLightboxImage() {
   const src = LIGHTBOX_IMAGES[LIGHTBOX_INDEX] || FALLBACK_IMAGE;
-  delete el.lightboxImg.dataset.fallbackApplied;
   if (src !== FALLBACK_IMAGE) el.lightbox.classList.add("is-loading");
-  el.lightboxImg.src = src;
+  showProgressive(el.lightboxImg, src, CONFIG.cardWidth, CONFIG.lightboxWidth, () => el.lightbox.classList.remove("is-loading"));
   el.lightboxImg.alt =
     LIGHTBOX_IMAGES.length > 1 ? `صورة ${LIGHTBOX_INDEX + 1} من ${LIGHTBOX_IMAGES.length}` : "صورة المنتج";
 
@@ -2344,6 +2506,7 @@ function renderLightboxImage() {
     el.lightboxCounter.hidden = false;
     el.lightboxCounter.textContent = `${LIGHTBOX_INDEX + 1} / ${LIGHTBOX_IMAGES.length}`;
   }
+  preloadNeighbours(LIGHTBOX_IMAGES, LIGHTBOX_INDEX, CONFIG.lightboxWidth);
 }
 
 function goToLightboxImage(newIndex) {

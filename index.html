@@ -3,12 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="متجر العراقي للأدوات المنزلية — تصفح المنتجات واطلب بالقطعة مباشرة عبر واتساب.">
-<title>AL-IRAQI HOME APPLIANCES | المتجر</title>
+<title>AL-IRAQI HOME APPLIANCES | كتالوج الجملة</title>
+<!-- ===== رسالة الرابط (بتظهر لما الرابط يتبعت على واتساب/فيسبوك) — غيّر النص هنا مرة واحدة ===== -->
+<meta name="description" content="انتظروا منا كل جديد — أحدث الأصناف وأفضل أسعار الجملة من العراقي للأدوات المنزلية">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ar_EG">
-<meta property="og:title" content="AL-IRAQI HOME APPLIANCES | المتجر">
-<meta property="og:description" content="متجر العراقي للأدوات المنزلية — تصفح المنتجات واطلب بالقطعة مباشرة عبر واتساب.">
+<meta property="og:title" content="AL-IRAQI HOME APPLIANCES | كتالوج الجملة">
+<meta property="og:description" content="انتظروا منا كل جديد — أحدث الأصناف وأفضل أسعار الجملة من العراقي للأدوات المنزلية">
+<meta name="twitter:card" content="summary_large_image">
+<!-- بعد ما تعرف الرابط النهائي للموقع، شيل علامات التعليق وبدّل YOUR-DOMAIN:
+<link rel="canonical" href="https://YOUR-DOMAIN/">
+<meta property="og:url" content="https://YOUR-DOMAIN/">
+<meta property="og:image" content="https://YOUR-DOMAIN/preview.png">
+(preview.png = صورة 1200×630 بصيغة PNG أو JPG بجانب index.html — واتساب مش بيعرض SVG)
+-->
 <meta name="theme-color" content="#1b3a63">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b3a63'/%3E%3Ctext x='32' y='43' font-size='30' font-weight='800' text-anchor='middle' font-family='Arial' fill='%23fff'%3EAI%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +25,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="cards.css">
 </head>
-<body data-mode="retail">
+<body data-mode="wholesale">
 
   <!-- ===== الهيدر ===== -->
   <header class="site-header">
@@ -45,6 +53,13 @@
       </div>
     </div>
   </header>
+
+  <!-- ===== رسالة ثابتة (غيّر النص جوه الـ span، ولو سبته فاضي مش هتظهر) ===== -->
+  <div class="site-banner" id="siteBanner" hidden role="note">
+    <span class="site-banner-icon" aria-hidden="true">📣</span>
+    <p class="site-banner-text">انتظروا منا كل جديد — أحدث الأصناف وأفضل أسعار الجملة من العراقي للأدوات المنزلية</p>
+    <button class="site-banner-close" id="siteBannerClose" type="button" aria-label="إغلاق الرسالة">✕</button>
+  </div>
 
   <!-- ===== الشريط الثابت ===== -->
   <nav class="nav-bar" id="navBar" aria-label="الأقسام">
@@ -88,7 +103,7 @@
   <template id="cardTemplate">
     <article class="product-card">
       <div class="card-media">
-        <img class="card-img" src="" alt="" loading="lazy" decoding="async">
+        <img class="card-img" alt="" decoding="async">
         <div class="gallery-nav" hidden>
           <button type="button" class="gallery-arrow prev" aria-label="الصورة السابقة">‹</button>
           <button type="button" class="gallery-arrow next" aria-label="الصورة التالية">›</button>
@@ -101,7 +116,7 @@
 
       <div class="info-table">
         <div class="info-row"><span class="info-label">كود المنتج</span><span class="info-val card-itemid"></span></div>
-        <div class="info-row"><span class="info-label">القسم</span><span class="info-val card-category"></span></div>
+        <div class="info-row row-cat"><span class="info-label">القسم</span><span class="info-val card-category"></span></div>
         <div class="info-row row-pcs"><span class="info-label">الكمية داخل الكرتونة</span><span class="info-val qty-num"></span></div>
         <div class="info-row row-piece"><span class="info-label">سعر القطعة</span><span class="info-val price-piece"></span></div>
         <div class="info-row row-carton"><span class="info-label">سعر الكرتونة</span><span class="info-val price-carton"></span></div>
@@ -226,7 +241,7 @@
           <span class="help-tip-icon">🛒</span>
           <div class="help-tip-text">
             <b>إضافة صنف للطلب</b>
-            <p>حدد الكمية المطلوبة، وبعدين دوس "أضف للطلب" — تقدر تتابع اللي ضفته من زرار "طلبك" فوق.</p>
+            <p>اختار بالقطعة أو بالكرتونة، حدد الكمية، وبعدين دوس "أضف للطلب" — تقدر تتابع اللي ضفته من زرار "طلبك" فوق.</p>
           </div>
         </div>
         <div class="help-tip">

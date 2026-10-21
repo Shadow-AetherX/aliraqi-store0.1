@@ -6,7 +6,7 @@
 /* ---- الشبكة: عمود واحد على الموبايل عشان الصورة تاخد أكبر مساحة ---- */
 .catalog-grid,
 .category-products-grid{
-  grid-template-columns:repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap:22px;
 }
 @media (max-width:600px){
@@ -111,3 +111,83 @@
 /* ---- فروق نسخة القطاعي: مفيش كراتين نهائيًا ---- */
 body[data-mode="retail"] .cart-stats{ grid-template-columns:repeat(2, 1fr); }
 body[data-mode="retail"] .cart-stat.stat-cartons{ display:none; }
+
+/* =========================================================
+   ظهور الصورة تدريجيًا: نسخة صغيرة مموّهة ثم الدقة العالية
+   ========================================================= */
+.card-img{ color:transparent; font-size:0; transition:filter .35s ease, transform .35s ease; }
+.card-img.img-blur{ filter:blur(10px); transform:scale(1.05); }
+@media (prefers-reduced-motion: reduce){ .card-img{ transition:none; } }
+
+/* شارة "غير متوفر" على الصورة (نسخة الجملة) — أعلى يسار الصورة */
+.card-unavail-badge{
+  position:absolute;
+  top:12px; left:12px;
+  padding:5px 12px;
+  border-radius:999px;
+  background:var(--danger);
+  color:#fff;
+  font-size:.74rem;
+  font-weight:800;
+  box-shadow:var(--shadow-sm);
+  pointer-events:none;
+}
+
+/* ---- الرسالة الثابتة تحت الهيدر ---- */
+.site-banner{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  max-width:1560px;
+  margin:10px auto 0;
+  padding:10px 14px;
+  background:var(--emerald-bg);
+  border:1px solid var(--emerald);
+  border-radius:var(--radius-sm);
+  color:var(--navy);
+}
+.site-banner-icon{ flex:0 0 auto; font-size:1.1rem; }
+.site-banner-text{ flex:1; margin:0; font-size:.9rem; font-weight:700; line-height:1.6; }
+.site-banner-close{
+  flex:0 0 auto;
+  width:34px; height:34px;
+  border:none; border-radius:50%;
+  background:rgba(27,58,99,.08);
+  color:var(--navy);
+  cursor:pointer;
+}
+.site-banner-close:hover{ background:rgba(27,58,99,.16); }
+@media (max-width:1590px){ .site-banner{ margin-inline:12px; } }
+
+/* =========================================================
+   توافق كل الشاشات: موبايل ← آيباد ← لابتوب ← شاشات كبيرة
+   ========================================================= */
+/* تابلت (آيباد عمودي/أفقي): 2–3 أعمدة بحسب العرض تلقائيًا */
+@media (min-width:601px) and (max-width:1023px){
+  .catalog-grid{ padding-left:20px; padding-right:20px; }
+  .product-card .card-name{ font-size:1.02rem; }
+}
+/* لابتوب وكمبيوتر */
+@media (min-width:1400px){
+  .header-inner, .control-bar, .nav-inner, .catalog-grid{ max-width:1560px; }
+  .product-card .card-name{ font-size:1.1rem; }
+}
+/* شاشات كبيرة جدًا */
+@media (min-width:1900px){
+  .header-inner, .control-bar, .nav-inner, .catalog-grid, .site-banner{ max-width:1800px; }
+  .catalog-grid, .category-products-grid{ grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); }
+}
+/* موبايل صغير */
+@media (max-width:360px){
+  .product-card .card-name{ font-size:.98rem; padding:12px 10px; }
+  .info-label{ font-size:.8rem; }
+  .info-val{ font-size:.9rem; }
+}
+/* موبايل بالعرض: الصورة مش لازم تملا الشاشة كلها */
+@media (orientation:landscape) and (max-height:520px){
+  .catalog-grid, .category-products-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+}
+/* الأجهزة اللي بتشتغل باللمس: أهداف ضغط أكبر */
+@media (hover:none){
+  .gallery-arrow{ width:42px; height:42px; }
+}
