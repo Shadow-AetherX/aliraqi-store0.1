@@ -1,0 +1,113 @@
+/* =========================================================
+   cards.css — شكل كارت الصنف (على طراز بيموكوك) + فروق نسخة القطاعي
+   بيتحمّل بعد style.css (لا تغيّر ترتيبهم في الـ HTML)
+   ========================================================= */
+
+/* ---- الشبكة: عمود واحد على الموبايل عشان الصورة تاخد أكبر مساحة ---- */
+.catalog-grid,
+.category-products-grid{
+  grid-template-columns:repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap:22px;
+}
+@media (max-width:600px){
+  .catalog-grid{ padding:14px 12px 80px; }
+  .catalog-grid,
+  .category-products-grid{ grid-template-columns:1fr; gap:16px; }
+}
+
+/* ---- الكارت ---- */
+.product-card{ border-radius:20px; }
+.product-card:hover{ transform:none; }
+.product-card:hover .card-img{ transform:none; }
+
+/* الصورة: مربعة بعرض الكارت كله، بدون قص للمحتوى المهم */
+.card-media{ aspect-ratio:1/1; border-radius:0; }
+.card-img{ object-fit:cover; }
+.gallery-arrow{ width:38px; height:38px; font-size:1.3rem; }
+
+/* شريط اسم الصنف */
+.product-card .card-name{
+  margin:0;
+  padding:14px 14px;
+  background:var(--emerald-bg);
+  border-top:1px solid var(--line);
+  border-bottom:2px solid var(--emerald);
+  color:var(--navy);
+  font-size:1.08rem;
+  font-weight:800;
+  line-height:1.5;
+  text-align:center;
+}
+
+/* ---- جدول البيانات: العنوان يمين والقيمة شمال ---- */
+.info-table{ display:flex; flex-direction:column; }
+.info-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  min-height:46px;
+  border-bottom:1px solid var(--line);
+}
+.info-label,
+.info-val{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 10px;
+  text-align:center;
+  min-width:0;
+}
+.info-label{
+  border-left:1px solid var(--line);
+  font-weight:700;
+  font-size:.88rem;
+  color:var(--text);
+}
+.info-val{
+  font-weight:800;
+  font-size:.98rem;
+  color:var(--navy);
+  overflow-wrap:anywhere;
+}
+/* تعديل خصائص قديمة في style.css كانت معمولة لشكل الكارت القديم */
+.info-val.card-itemid,
+.info-val.card-category{
+  max-width:none;
+  flex:initial;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  font-size:.95rem;
+  text-align:center;
+}
+.info-val.card-itemid{ direction:ltr; unicode-bidi:plaintext; }
+.info-val.card-category{ color:var(--emerald-dk); }
+.info-val .avail-flag{ margin:0; font-size:.78rem; padding:3px 12px; }
+
+/* السعر المختار حاليًا (قطعة/كرتونة) يتلوّن */
+.info-row.is-selected .info-label{ background:var(--emerald-bg); }
+.info-row.is-selected .info-val{ background:var(--emerald-bg); color:var(--emerald-dk); }
+
+.product-card .card-desc{
+  margin:0;
+  padding:10px 14px 0;
+  font-size:.84rem;
+}
+
+/* ---- منطقة الشراء ---- */
+.card-buy{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:14px;
+  margin-top:auto;
+}
+.card-buy .unit-switch{ margin:0; }
+.card-buy .qty-stepper{ width:100%; justify-content:space-between; }
+.card-buy .step-btn{ width:52px; height:46px; font-size:1.3rem; }
+.card-buy .qty-input{ flex:1; width:auto; height:46px; font-size:1rem; }
+.card-buy .line-total{ margin:0; }
+.card-buy .btn-add{ flex:none; width:100%; min-height:48px; font-size:.95rem; }
+
+/* ---- فروق نسخة القطاعي: مفيش كراتين نهائيًا ---- */
+body[data-mode="retail"] .cart-stats{ grid-template-columns:repeat(2, 1fr); }
+body[data-mode="retail"] .cart-stat.stat-cartons{ display:none; }
