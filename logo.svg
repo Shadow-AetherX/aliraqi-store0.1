@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="العراقي ستور">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a4380"/>
+      <stop offset="1" stop-color="#0b2146"/>
+    </linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22b58b"/>
+      <stop offset="1" stop-color="#128466"/>
+    </linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#139170"/>
+      <stop offset="1" stop-color="#0b6350"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8c876"/>
+      <stop offset="1" stop-color="#c39a43"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="28" fill="url(#bg)"/>
+  <rect x="3" y="3" width="114" height="114" rx="25" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>
+  <!-- carton (import) -->
+  <path d="M60 24 L94 42 L60 60 L26 42 Z" fill="#f6f9fd"/>
+  <path d="M26 42 L60 60 L60 98 L26 80 Z" fill="url(#left)"/>
+  <path d="M94 42 L60 60 L60 98 L94 80 Z" fill="url(#right)"/>
+  <!-- packing tape -->
+  <path d="M43 33 L77 51" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" opacity=".95"/>
+  <path d="M60 60 L60 98" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/>
+  <!-- little star: quality mark -->
+  <path d="M60 71.5 l2.6 5.3 5.8.85 -4.2 4.1 1 5.8 -5.2-2.75 -5.2 2.75 1-5.8 -4.2-4.1 5.8-.85z" fill="url(#gold)" transform="translate(0 -1)"/>
+</svg>
